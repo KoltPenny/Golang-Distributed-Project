@@ -1,0 +1,348 @@
+1. Con base a un estado mostrar el nombre de la sucursal y su tel
+
+delimiter #
+create procedure e1(in x varchar(45))
+begin
+select nombre as sucursal, tel
+from tienda
+where estado like concat(x,"%")
+order by nombre;
+end #
+delimiter ;
+
+/////////////////////////
+
+delimiter #
+create procedure selMin(in id varchar(16), in threshold double(11,6))
+begin
+
+select ST_DISTANCE(a.usr_p,b.ducto_p) as distance
+from user_point as a, ductos as b
+where dev_uuid=id and ST_DISTANCE(a.usr_p,b.ducto_p)<threshold;
+
+end #
+delimiter ;
+
+////////////////////////
+
+delimiter #
+create procedure getNearPoints ()
+begin
+
+select dev_uuid,ST_X(usr_p) as X, ST_Y(usr_p)as Y
+from user_point
+where near=true
+order by (x);
+
+end #
+delimiter ;
+
+////////////////////////
+
+delimiter #
+create procedure insertUsuario(
+
+in uuid varchar(16),
+in lng double(11,6),
+in lat double(11,6),
+in cdate timestamp,
+in r_type tinyint(1)
+
+)
+begin
+
+insert into usuario values (uuid,lng,lat,cdate,r_type);
+insert into user_point values (
+uuid,
+POINT(lng,lat),
+ifnull(is_near_p(POINT(lng,lat)),0)
+);
+
+end #
+delimiter ;
+
+////////////////////////// insert into user_point values (uuid,POINT(lat,lng));
+
+delimiter #
+create procedure ductNearPoint(in id varchar(16))
+begin
+
+select b.id
+from user_point as a, duct_line as b
+where a.dev_uuid=id and
+ST_DISTANCE(a.usr_p,b.duct_l)<0.02 order by (b.id);
+
+end #
+delimiter ;
+
+///////////////////////
+
+delimiter #
+create function is_near(id varchar(16)) returns boolean
+begin
+return(
+select a.dev_uuid is not null
+from user_point as a, duct_line as b
+where a.dev_uuid=id and
+ST_DISTANCE(a.usr_p,b.duct_l)<0.02 limit 1
+);
+end #
+delimiter ;
+
+///////////////////////
+
+delimiter #
+create function is_near_p(pt point) returns boolean
+begin
+return(
+select ST_DISTANCE(pt,b.duct_l) is not null
+from duct_line as b
+where ST_DISTANCE(pt,b.duct_l)<0.02 limit 1
+);
+end #
+delimiter ;
+
+///////////////////////
+
+GRUPO Y COORDENADAS;
+
+delimiter #
+create procedure getGroup()
+begin
+
+select g.*,u.gps_lat,gps_long from grupos as g, usuario as u where u.device_uuid=g.dev_uuid;
+
+end #
+delimiter ;
+
+
+TODOS LOS USUARIOS;
+
+delimiter #
+create procedure getUsers()
+begin
+
+select device_uuid,gps_lat,gps_long from usuario;
+
+end #
+delimiter ;
+
+
+///////////////////////
+
+
+delimiter #
+create procedure selNear(in id1 varchar(16))
+begin
+select
+a.dev_uuid as p1,
+c.dev_uuid as p2,
+b.id as point
+from user_point as a, ductos as b, user_point as c
+where
+a.dev_uuid = id1 and
+a.dev_uuid <> c.dev_uuid and
+ST_DISTANCE(a.usr_p,b.ducto_p)<0.05 and
+ST_DISTANCE(c.usr_p,b.ducto_p)<0.05 and
+ST_DISTANCE(a.usr_p,c.usr_p)>0 and
+ST_DISTANCE(a.usr_p,c.usr_p)<0.04;
+end #
+delimiter ;
+
+//QUERY
+
+select
+a.dev_uuid as p1,
+c.dev_uuid as p2,
+b.id as point
+from user_point as a, ductos as b, user_point as c
+where
+a.dev_uuid <> c.dev_uuid and
+ST_DISTANCE(a.usr_p,b.ducto_p)<0.03 and
+ST_DISTANCE(c.usr_p,b.ducto_p)<0.03 and
+ST_DISTANCE(a.usr_p,c.usr_p)>0 and
+ST_DISTANCE(a.usr_p,c.usr_p)<0.05;
+
+///////
+
+delimiter #
+create procedure selNear(in id1 varchar(16), in p2d_th double(11,6), in p2p_th double(11,6))
+begin
+
+select
+a.dev_uuid as p1,
+c.dev_uuid as p2,
+b.id as point,
+ST_DISTANCE(a.usr_p,b.ducto_p) as P1_to_D,
+ST_DISTANCE(c.usr_p,b.ducto_p) as P2_to_D,
+ST_DISTANCE(a.usr_p,c.usr_p) as P1_to_P2
+from user_point as a, ductos as b, user_point as c
+where
+a.dev_uuid = id1 and
+a.dev_uuid <> c.dev_uuid and
+ST_DISTANCE(a.usr_p,b.ducto_p)<p2d_th and
+ST_DISTANCE(c.usr_p,b.ducto_p)<p2d_th and
+ST_DISTANCE(a.usr_p,c.usr_p)>0 and
+ST_DISTANCE(a.usr_p,c.usr_p)<p2p_th;
+end #
+delimiter ;
+
+
+delimiter #
+create procedure selNear(in id1 varchar(16), in p2d_th double(11,6), in p2p_th double(11,6))
+begin
+
+select
+a.dev_uuid as p1,
+c.dev_uuid as p2,
+b.id as point,
+ST_DISTANCE(a.usr_p,b.ducto_p) as P1_to_D,
+ST_DISTANCE(c.usr_p,b.ducto_p) as P2_to_D,
+ST_DISTANCE(a.usr_p,c.usr_p) as P1_to_P2
+from user_point as a, ductos as b, user_point as c
+where
+a.dev_uuid = id1;
+end #
+delimiter ;
+
+2. Con base a una fecha de pago mostrar el nombre completo del cliente
+
+delimiter #
+create procedure e2(in f date)
+begin
+select c.nombre, c.apPaterno, c.apMaterno
+from cliente c, pago p
+where c.idcliente=p.idcliente
+and p.fechaPago=f
+order by c.apPaterno;
+end #
+delimiter ;
+
+3. Con base a una categoria mostrar el nombre y el precio unitario de sus productos.
+
+delimiter #
+create procedure e3(in x varchar(60))
+begin
+select p.nombre, p.preciounitario
+from producto p, subcategoria s, categoria c
+where p.idsubcategoria=s.idsubcategoria
+and s.idcategoria=c.idcategoria
+and c.nombre like concat(x,"%")
+order by p.preciounitario;
+end #
+delimiter ;
+
+4. Con base en una subcategoria mostrar el nombre de sus productos.
+
+delimiter #
+create procedure e4(in x varchar(60))
+begin
+select p.nombre from producto p, subcategoria s
+where p.idsubcategoria=s.idsubcategoria
+and s.nombre like concat(x,"%")
+order by p.nombre;
+end #
+delimiter ;
+
+5. Con base a un cliente mostrar su monto de crédito.
+
+delimiter #
+create procedure e5(in ap varchar(45))
+begin
+select c.nombre, c.apPaterno, c.apMaterno, x.monto
+from cliente c, pago p, credito x
+where c.idcliente=p.idcliente
+and p.idcredito=x.idcredito
+and c.apPaterno like concat(ap,"%")
+order by x.monto, c.apPaterno;
+end #
+delimiter ;
+
+Crear los siguientes sp
+
+6. Actualizar el correo electrónico de un cliente
+
+delimiter #
+create procedure e6(in id int, in m varchar(50))
+begin
+select idcliente, nombre, apPaterno, apMaterno, email
+from cliente
+where idcliente=id;
+
+update cliente set email=m
+where idcliente=id;
+
+select idcliente, nombre, apPaterno, apMaterno, email
+from cliente
+where idcliente=id;
+end #
+delimiter ;
+
+7. Cambiar el tel de una sucursal
+
+delimiter #
+create procedure e7(in s varchar(45), in t varchar(20))
+begin
+select nombre, tel
+from tienda
+where nombre like concat(s,"%");
+
+update tienda set tel=t
+where  nombre like concat(s,"%");
+
+select nombre, tel
+from tienda
+where nombre like concat(s,"%");
+end #
+delimiter ;
+
+8. Cambiar a un porcentaje el precio unitario de los productos de una marca determinada
+
+delimiter #
+create procedure e8(in p int, in m varchar(45))
+begin
+select nombre, preciounitario
+from producto
+where marca like concat(m,"%");
+
+update producto set preciounitario=(preciounitario+(preciounitario/100)*p)
+where marca like concat(m,"%");
+
+select nombre, preciounitario
+from producto
+where marca like concat(m,"%");
+
+end #
+delimiter ;
+
+9. Dar de alta a un cliente
+
+delimiter #
+create procedure e9(in id int,in nc varchar(45),in ap varchar(45), in am varchar(45))
+begin
+insert into cliente (idcliente,nombre,apPaterno,apMaterno)
+values (id,nc,ap,am);
+select * from cliente where idcliente=id;
+end #
+delimiter ;
+
+10.Cambiar la fecha de pago de un cliente determinado
+
+delimiter #
+create procedure e10(in id int,in f date)
+begin
+select c.idcliente, c.nombre, c.apPaterno, c.apMaterno, p.fechaPago
+from cliente c, pago p
+where c.idcliente=p.idcliente
+and c.idcliente=id;
+
+update pago set fechaPago=f
+where idcliente=id;
+
+select c.idcliente, c.nombre, c.apPaterno, c.apMaterno, p.fechaPago
+from cliente c, pago p
+where c.idcliente=p.idcliente
+and c.idcliente=id;
+
+end #
+delimiter ;
