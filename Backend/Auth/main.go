@@ -14,11 +14,14 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 //Remote server URLs
-const backupServer = "http://localhost:9000/reportBackup"
-const updateServer = "http://localhost:9000/reportUpdate"
-const managerServer = "http://localhost:8081/postToManager"
+//const backupServer = "http://localhost:9000/reportBackup"
+//const updateServer = "http://localhost:9000/reportUpdate"
+//const managerServer = "http://localhost:8081/postToManager"
 
-//MUTEX & DATABASE
+const backupServer = "http://192.168.43.52:9000/reportBackup"  
+const updateServer = "http://192.168.43.52:9000/reportUpdate"  
+const managerServer = "http://localhost:8081/postToManager"//MUTEX & DATABASE
+
 //var database *sql.DB
 var mutex sync.Mutex
 

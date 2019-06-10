@@ -17,12 +17,17 @@ import (
 	//"os"
 )
 //Remote server URLs
-const backupServer = "http://localhost:9000/reportBackup"
-const updateServer = "http://localhost:9000/reportUpdate"
-const managerPet = "http://localhost:9000/managerPet"
-const managerUserMap = "http://localhost:9000/managerUserMap"
-
+//const backupServer = "http://localhost:9000/reportBackup"
+//const updateServer = "http://localhost:9000/reportUpdate"
+//const managerPet = "http://localhost:9000/managerPet"
+//const managerUserMap = "http://localhost:9000/managerUserMap"
 //const managerServer = "http://localhost:8081/Manager"
+
+const backupServer = "http://192.168.43.52:9000/reportBackup"
+const updateServer = "http://192.168.43.52:9000/reportUpdate"
+const managerPet = "http://192.168.43.52:9000/managerPet"
+const managerUserMap = "http://192.168.43.52:9000/managerUserMap"
+const managerServer = "http://localhost:8081/Manager"
 
 //MUTEX & DATABASE
 //var database *sql.DB
