@@ -78,7 +78,7 @@ func receiveReport(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		mutex.Lock() //START -> [Lock MUTEX]
+		//mutex.Lock() //START -> [Lock MUTEX]
 		
 		//Database open
 		database,_ := sql.Open ("sqlite3","./reportes.db")
@@ -105,7 +105,7 @@ func receiveReport(w http.ResponseWriter, r *http.Request) {
 			//return
 		}
 
-		mutex.Unlock()//END -> [Unlock MUTEX]
+		//mutex.Unlock()//END -> [Unlock MUTEX]
 
 		//START -> [Send to Main DB and Manager]
 		data,_ := json.Marshal(insob)

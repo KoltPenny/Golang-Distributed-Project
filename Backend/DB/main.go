@@ -36,7 +36,7 @@ func createReportStatement (rep report) error {
 		rep.Cdate,
 		rep.Rep_t,
 	)
-
+	fmt.Println(sentence)
 	query,err := database.Prepare(sentence)
 	if err != nil {	fmt.Println(err)	}
 	

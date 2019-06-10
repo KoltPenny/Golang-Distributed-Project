@@ -101,8 +101,8 @@ func (insob *insertRepObj) Fill(name string,rep report) {
 func (insob insertRepObj) makeRep() report {
 	return report {
 		insob.Device_uuid,
-		insob.Gps_lat,
 		insob.Gps_long,
+		insob.Gps_lat,
 		insob.Cdate,
 		insob.Report_type,
 	}

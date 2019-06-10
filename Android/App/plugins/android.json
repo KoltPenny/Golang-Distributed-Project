@@ -18,6 +18,9 @@
     },
     "cordova-plugin-geolocation": {
       "PACKAGE_NAME": "pkg.userapp"
+    },
+    "cordova-plugin-console": {
+      "PACKAGE_NAME": "pkg.userapp"
     }
   },
   "dependent_plugins": {}
