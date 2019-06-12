@@ -48,7 +48,7 @@
     <script>
 		 document.addEventListener("deviceready", function () {
 				 onDevice();
-				 alert("something");
+				 //alert("something");
 				 dev=device.uuid;
 		 }, false);
 
@@ -57,8 +57,9 @@
 
 		 function onDevice() {
 				 
-				 alert(device.platform);
+				 //alert(device.platform);
 		 }
+
 		 function makeid() {
 				 var result           = '';
 				 var characters       = 'abcdef0123456789';
@@ -71,13 +72,12 @@
 		 
 		 function sendtoserver() {
 				 //alert(elem)
-				 var newel = elem.split(',')
 				 var obj = new Object();
 				 
-				 //obj.uuid = dev.uuid;
-				 obj.uuid = device.uuid;
-				 obj.long = parseFloat(newel[0]);
-				 obj.lat = parseFloat(newel[1]);
+				 obj.uuid = makeid();
+				 //obj.uuid = device.uuid;
+				 obj.long = parseFloat(elem[0]);
+				 obj.lat = parseFloat(elem[1]);
 				 obj.cdate = 0;
 				 obj.rep_t = 1;
 				 
@@ -104,7 +104,7 @@
 								 }
 						 }
 				 };
-				 xhttp.open("POST", "http://192.168.0.9:5000/process",true);
+				 xhttp.open("POST", "http://10.100.70.232:5000/process",true);
 				 xhttp.setRequestHeader("Content-type", "application/json");
 				 xhttp.send(JSON.stringify(obj));
 		 }
@@ -124,18 +124,6 @@
 				 console.log('code: '    + error.code    + '\n' +
 										 'message: ' + error.message + '\n');
 		 }
-
-		 navigator.geolocation.getCurrentPosition(onSuccess, onError);
-
-		 var mousePositionControl = new ol.control.MousePosition({
-				 coordinateFormat: ol.coordinate.createStringXY(4),
-				 projection: 'EPSG:4326',
-				 // comment the following two lines to have the mouse position
-				 // be placed within the map.
-						 className: 'custom-mouse-position',
-				 target: document.getElementById('mouse-position'),
-				 //undefinedHTML: ''
-		 });
 		 
 		 var image = new ol.style.Circle({
 				 radius: 5,
@@ -1207,92 +1195,31 @@
 						 vectorLayer
 				 ],
 				 target: 'map',
-				 controls: ol.control.defaults().extend([mousePositionControl]),
+				 controls: ol.control.defaults(),
 				 view: new ol.View({
 						 center: ol.proj.transform([-101.1, 20.6], 'EPSG:4326', 'EPSG:3857'),
 						 zoom: 9
 				 })
 		 });
 
-		 var elem
 		 //PONER PUNTITOS
+		 var elem
+		 var tempfeat;
+		 map.getViewport().addEventListener("click", function(e) {
+				 var coordinate = map.getEventCoordinate(e);
 
-		 var modify = new ol.interaction.Modify({source: vectorSource});
-		 map.addInteraction(modify);
-
-		 var draw, snap; // global so we can remove them later
-		 //var typeSelect = document.getElementById('type');
-		 
-		 function addInteractions() {
-				 draw = new ol.interaction.Draw({
-						 source: vectorSource,
-						 type: "Point"
-				 });
-				 map.addInteraction(draw);
-				 snap = new ol.interaction.Snap({source: vectorSource});
-				 map.addInteraction(snap);
-
-		 }
-
-		 
-		 addInteractions();
-		 //
-		 var featureListener = function ( event ) {
-				 console.log("featureListenerCalled");
-				 alert("Feature Listener Called");
-		 };
-
-		 map.on('click', function(event) {
-				 elem = document.getElementById('mouse-position').firstChild.innerHTML;
-				 if (elem) {
-						 //alert(document.getElementById('mouse-position').firstChild.innerHTML);
-						 document.getElementById("myboton").disabled = false;
+				 if(tempfeat) {
+						 vectorSource.removeFeature(tempfeat);
 				 }
-				 else {
-						 
-				 }
-				 
+				 document.getElementById("myboton").disabled = false;
+				 tempfeat = new ol.Feature(new ol.geom.Point(coordinate))
+				 tempfeat.setId("temp")
+				 var coords = tempfeat.getGeometry().A;
+				 elem =ol.proj.transform([coords[0],coords[1]], 'EPSG:3857', 'EPSG:4326')
+				 vectorSource.addFeature(tempfeat);
 				 
 		 });
-
 		 
-		 
-		 var vector_layer = null;
-		 function testing () {
-
-				 var geojsonObject = {
-						 "type": "FeatureCollection",
-						 "totalFeatures": 72,
-						 "features":[
-								 {
-										 "type": "Feature",
-										 "id": "f844615e0c4d479f",
-										 "geometry": {
-												 "type": "Point",
-												 "coordinates": [globpos.coords.longitude,globpos.coords.latitude]
-										 },
-										 "geometry_name": "usr_p",
-										 "properties": {
-												 "LAYER": "Points",
-												 "ID": 71
-										 }
-								 }
-						 ]
-				 };
-
-				 if(vector_layer) { map.removeLayer(vector_layer); }
-				 
-				 var vectorSource = new ol.source.Vector({
-						 features: (
-								 new ol.format.GeoJSON()).readFeatures(
-										 geojsonObject,{ 
-												 defaultDataProjection: 'EPSG:4326',
-												 featureProjection:'EPSG:3857'
-										 })});
-
-				 var vector_layer = new ol.layer.Vector({source:vectorSource,style:styleFunction})
-				 map.addLayer(vector_layer);
-		 }
 
     </script>
   </body>

@@ -148,7 +148,7 @@ func (r *report) All() (string,float64,float64,int64,int8) {
 
 func SendToServer(data []byte, server_address string) (*http.Response,error) {
 	resp, err := http.Post(server_address, "application/json", bytes.NewBuffer(data))
-	//fmt.Println(resp,err)
+	fmt.Println(resp,err)
 	return resp,err
 }
 
@@ -243,65 +243,4 @@ func CastReport (jsondata []byte, update_process string, next_process string) er
 	}
 
 	return nil
-	/*
-	go func() {
-		
-		for {
-			select {
-			case <- kill:	return //Dies if timeout occurs
-			default:
-				res,err = SendToServer(jsondata,update_process)
-				if err == nil {
-					dbchan <- true
-					return
-				}
-				fmt.Println("SENDING...")
-				fmt.Println(err)
-				time.Sleep(1 * time.Second)
-			}
-		}
-	}()
-	
-	select {
-	case <- dbchan:
-		fmt.Println("DB updated")
-		
-	case <- time.After(2 * time.Second):
-		kill <- true
-		fmt.Println("Sending timed out. Aborting...")
-		close(dbchan)
-		close(kill)
-		err = errors.New("TIMEOUT")
-		return err
-	}
-
-	nodechan := make(chan bool,1)
-	kill = make(chan bool)
-	
-	go func () {
-		//Notify manager
-		select {
-		case <- kill:	return //Dies if timeout occurs
-		default:
-			fmt.Println("Notifying next node...")
-			for {
-				res,err = SendToServer(jsondata,next_process)
-				if err == nil { nodechan <- true ; break }
-				fmt.Println(err)
-				time.Sleep(1 * time.Second)
-			}
-		}
-	}()
-
-	select {
-	case <- nodechan:
-		fmt.Println("Node notified")
-		
-	case <- time.After(5 * time.Second):
-		fmt.Println("Sending timed out. Aborting...")
-		return err
-	}
-
-	return err
-  */
 }

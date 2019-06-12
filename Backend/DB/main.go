@@ -281,6 +281,11 @@ func managerUserMap(w http.ResponseWriter, r *http.Request) {
 		if "givememap" != string(plaintext) {
 			//PONER ALGO AQUÍ
 			fmt.Println("FAIL -- ",string(plaintext))
+			
+			nonce := makeNonce()
+			data := aes_gcm.Seal(nonce,nonce,[]byte("MAP-BR"),nil)
+		
+			w.Write(data)
 			return
 		}
 		

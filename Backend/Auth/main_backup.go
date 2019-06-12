@@ -152,7 +152,57 @@ func periodicBackup(minutes int) {
 
 	}	
 }
+// periodicBackup
+/*
+func periodicBackup(minutes int, tableName string) {
 
+	database,_ := sql.Open ("sqlite3","./reportes.db")
+	defer database.Close()
+
+	for {
+		time.Sleep(time.Duration(minutes) * time.Second)
+
+		mutex.Lock() //START -> [Lock MUTEX]
+
+		var str strings.Builder
+		str.WriteString("SELECT * FROM ")
+		str.WriteString(tableName)
+
+		query := str.String()
+		rows,_ := database.Query(query)
+
+		stored_rep := report{}
+		reports := []report{}
+
+		for rows.Next() {
+			err := rows.Scan(	&stored_rep.Uuid,&stored_rep.Lat,&stored_rep.Long,&stored_rep.Cdate,&stored_rep.Rep_t)
+			if err != nil {	fmt.Println(err) }
+
+			reports = append(reports,stored_rep)
+		}
+		reps := map[string] []report {tableName:reports}
+
+		backup,_ := json.Marshal(reps)
+		nonce := makeNonce()
+		backup = aes_gcm.Seal(nonce,nonce,backup,nil)
+
+		resp,err := SendToServer(backup,backupServer)
+
+		if err != nil {
+			fmt.Println("Couldn't reach main server. Aborting backup...")
+			mutex.Unlock()
+			continue
+		}
+
+		fmt.Println("Backup successful!")
+		response,_ := ioutil.ReadAll(resp.Body)
+		fmt.Println(string(response))
+
+		mutex.Unlock()//END -> [Unlock MUTEX]
+
+	}	
+}
+*/
 func main () {
 
 	//Create table

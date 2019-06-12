@@ -9,6 +9,7 @@ import (
 	"net/http"
 	//"strings"
 	"regexp"
+	"errors"
 	"bytes"
 	//"sync"
 	//"time"
@@ -160,7 +161,7 @@ func reportToManager(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getUserMap() []byte {
+func getUserMap() ([]byte,error) {
 
 	nonce := makeNonce()
 	raw_data := aes_gcm.Seal(nonce,nonce,[]byte("givememap"),nil)
@@ -173,18 +174,36 @@ func getUserMap() []byte {
 	getMap.WriteString(data)
 
 	resp,err :=http.Get(string(getMap.Bytes()))
-	if err != nil {return nil}
+	if err != nil {return nil,err}
 	
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(resp.Body)
 
 	plaintext,err := decipher(buf.Bytes())
-	if err != nil { fmt.Println(err);return nil}
+	if err != nil { fmt.Println(err);return nil,err}
 
-	
+	if "MAP-BR" == string(plaintext) {
+		fmt.Println("FAIL -- ",string(plaintext))
+		return nil,errors.New("MAP-BR")
+		}
 
-	return plaintext
+	return plaintext,nil
 	
+}
+
+func startMap(w http.ResponseWriter, r *http.Request) {
+	
+	if r.Method == "GET" {
+		raw,err := getUserMap();
+		if err != nil {
+			fmt.Println("Getting map: ",err)
+			switch err.Error() {
+			case "MAP-BR":
+				w.Write([]byte(err.Error()))
+			}
+		}
+		w.Write(raw)
+	}
 }
 
 func main () {
@@ -219,6 +238,7 @@ func main () {
 	createTable(td)
 	
 	http.HandleFunc("/postToManager",reportToManager)
+	http.HandleFunc("/startMap",startMap)
 	log.Fatal(http.ListenAndServe(":8081", nil))
 
 }
