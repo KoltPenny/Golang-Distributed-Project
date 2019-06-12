@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html style="width:100%;height:100%;">
   <head>
-    <title>Device Properties Example</title>
+    <title>SENTINEL</title>
 		<!-- link rel="stylesheet" href="https://openlayers.org/en/v4.6.5/css/ol.css" type="text/css"-->
 		<link rel="stylesheet" href="css/ol.css" type="text/css">
     <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
@@ -46,29 +46,38 @@
 		<div id="mouse-position" style="position:absolute;width:0px;height:0px;top:0px;"></div>
 
     <script>
-		 document.addEventListener("deviceready", onDeviceReady, false);
+		 document.addEventListener("deviceready", function () {
+				 onDevice();
+				 alert("something");
+				 dev=device.uuid;
+		 }, false);
 
 		 var globpos;
 		 var dev;
 
-		 function onDeviceReady() {
-				 onDevice();
-				 dev=device.uuid;
-		 }
-		 
-		 
 		 function onDevice() {
-				 alert("GO"+device.uuid);
+				 
+				 alert(device.platform);
+		 }
+		 function makeid() {
+				 var result           = '';
+				 var characters       = 'abcdef0123456789';
+				 var charactersLength = characters.length;
+				 for ( var i = 0; i < 16; i++ ) {
+						 result += characters.charAt(Math.floor(Math.random() * charactersLength));
+				 }
+				 return result;
 		 }
 		 
 		 function sendtoserver() {
-				 alert(elem)
+				 //alert(elem)
 				 var newel = elem.split(',')
 				 var obj = new Object();
 				 
-				 obj.uuid = dev.uuid;
-				 obj.long = newel[0];
-				 obj.lat = newel[1];
+				 //obj.uuid = dev.uuid;
+				 obj.uuid = device.uuid;
+				 obj.long = parseFloat(newel[0]);
+				 obj.lat = parseFloat(newel[1]);
 				 obj.cdate = 0;
 				 obj.rep_t = 1;
 				 
@@ -76,12 +85,26 @@
 				 xhttp.onreadystatechange = function() {
 						 if (this.readyState == 4 && this.status == 200) {
 								 let resp = this.responseText;
-								 if (resp == "OK") {
-										 alert("Tu reporte ha sido exitoso");
+								 switch(resp) {
+										 case "OK":
+												 alert("Gracias por reportar. Tu denuncia está siendo atendida.");
+												 break;
+										 case "CONN-ERR":
+												 alert("No pudimos contactar a los servidores. Intenta nuevamente.");
+												 break;
+										 case "CONN-TO":
+												 alert("La conexión tardó demasiado. Intenta nuevamente.");
+												 break;
+										 case "QUERY":
+												 alert("Gracias por reportar.");
+												 break;
+										 case "UK":
+												 alert("Error de conexión desconocido.");
+												 break;
 								 }
 						 }
 				 };
-				 xhttp.open("POST", "192.168.43.197:5000/process",true);
+				 xhttp.open("POST", "http://192.168.0.9:5000/process",true);
 				 xhttp.setRequestHeader("Content-type", "application/json");
 				 xhttp.send(JSON.stringify(obj));
 		 }

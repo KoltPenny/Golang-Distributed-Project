@@ -162,8 +162,13 @@ func reportUpdate(w http.ResponseWriter, r *http.Request) {
 			return
 		}				
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprintf(w, "DATA-OK")
 
+		nonce := makeNonce()
+		data := aes_gcm.Seal(nonce,nonce,[]byte("DATA-OK"),nil)
+		
+		w.Write(data)
+
+		fmt.Println("OK-RESPONDED")
 		err = createReportStatement(jsondata.makeRep())
 		if err != nil { fmt.Println(err) }
 		

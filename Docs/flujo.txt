@@ -1,0 +1,39 @@
+------------------------------------------------------------------------
+| # - Implemented | % - Coming | $ - Future | ...                      |
+------------------------------------------------------------------------
+
+[GROUPS: USER, MANAGER, HANDLER, DATABASE]
+
+@USER Android <--> Flask:
+
+<OUT>
+	# JSON
+	#- uuid		: string
+	#- long		: float
+	#- lat		: float
+	#- cdate	: null
+	#- rep_t	: 1/0
+
+<IN>
+	# STRING
+	#- "OK"						: Report success.
+	#- "CONN-ERR"			: Connection error.
+	#- "CONN-TO"			: Connection timed out.
+	#- "UK"						: Unknown connection error.
+	
+@USER Flask <--> Golang:
+
+<OUT>
+	# JSON
+	#- uuid		: string
+	#- long		: float
+	#- lat		: float
+	#- cdate	: null
+	#- rep_t	: 1/0
+
+<IN>
+	# STRING
+	#- "RP-OK"				: Database updated.
+	#- "CONN-ERR"			: Connection error.
+	#- "CONN-TO"			: Connection timed out.
+	#- "UK"						: Unknown connection error.

@@ -17,10 +17,24 @@ def process():
     if request.method == 'POST':
         newd = request.get_json()
         print(newd)
-        r = requests.post('http://localhost:8080/report','',json=newd)
+        try:
+            r = requests.post('http://localhost:8080/report','',json=newd)
+        except requests.ConnectionError:
+            print("Connection error. Aborting message...")
+            print("Notifying user...")
+            return "CONN-ERR"
 
-        #return jsonify({'error':'Missing data!'})
-        return ""
+        response = r.content.decode("utf-8")
+        print(sc(response))
+        return sc(response)
+
+#SWITCH-CASE FOR ERRORS
+def sc(x):
+    return {
+        "RP-TO" : "CONN-TO",
+        "RP-OK" : "OK",
+        "RP-QU" : "QUERY"
+    }.get(x,"UK")
 
 if __name__ == '__main__':
     app.run(debug = True)

@@ -11,6 +11,7 @@ import (
 	"time"
 	"fmt"
 	"io"
+	"os"
 )
 
 //SECURE
@@ -153,15 +154,96 @@ func SendToServer(data []byte, server_address string) (*http.Response,error) {
 
 func CastReport (jsondata []byte, update_process string, next_process string) error {
 /* SENDS REPORTS TO UPDATE PROCESS AND NEXT PROCESS */
-	var err error
-	var res *http.Response
+
 	//Update database
 
-	fmt.Println("Updating database...")
+	req,_ := http.NewRequest("POST",update_process,bytes.NewBuffer(jsondata))
+	tr := &http.Transport{}
+	client := &http.Client{Transport: tr}
 
-	dbchan := make(chan bool,1)
-	kill := make(chan bool)
+	fmt.Println("Updating database...")
 	
+	done := make(chan error,1)
+
+	go func() {
+		resp,err := client.Do(req)
+		if err != nil {	done <- err	}
+		
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(resp.Body)
+		plaintext,err := decipher(buf.Bytes())
+		os.Stdout.Write(plaintext)
+		
+		if err != nil {
+			done <- err
+		}
+
+		done <- nil
+
+	}()
+
+	timeout := make(chan bool,1)
+	
+	go func(){
+		time.Sleep(2 * time.Second)
+		tr.CancelRequest(req)
+		timeout <- true
+	}()
+
+	select {
+	case <- timeout:
+		fmt.Println("Request Cancelled")
+		return errors.New("TIMEOUT")
+	case err := <- done:
+		fmt.Println("Request Fulfilled")
+		if err != nil {
+			fmt.Println("Request ERROR: ",err)
+		}
+	}
+
+	//Notify Manager
+
+	req2,_ := http.NewRequest("POST",next_process,bytes.NewBuffer(jsondata))
+
+	fmt.Println("Notifying manager...")
+	
+	done = make(chan error,1)
+
+	go func() {
+		resp,err := client.Do(req2)
+		if err != nil {	done <- err	}
+		
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(resp.Body)
+		plaintext,err := decipher(buf.Bytes())
+		os.Stdout.Write(plaintext)
+		
+		if err != nil {	done <- err	}
+
+		done <- nil
+
+	}()
+
+	timeout = make(chan bool,1)
+	
+	go func(){
+		time.Sleep(2 * time.Second)
+		tr.CancelRequest(req)
+		timeout <- true
+	}()
+
+	select {
+	case <- timeout:
+		fmt.Println("Request Cancelled 2")
+		return errors.New("TIMEOUT")
+	case err := <- done:
+		if err != nil {
+			fmt.Println("Request ERROR: ",err)
+		}
+	}
+
+	return nil
+	/*
 	go func() {
 		
 		for {
@@ -173,21 +255,23 @@ func CastReport (jsondata []byte, update_process string, next_process string) er
 					dbchan <- true
 					return
 				}
+				fmt.Println("SENDING...")
 				fmt.Println(err)
 				time.Sleep(1 * time.Second)
 			}
 		}
 	}()
-
+	
 	select {
 	case <- dbchan:
 		fmt.Println("DB updated")
 		
-	case <- time.After(5 * time.Second):
+	case <- time.After(2 * time.Second):
 		kill <- true
 		fmt.Println("Sending timed out. Aborting...")
 		close(dbchan)
 		close(kill)
+		err = errors.New("TIMEOUT")
 		return err
 	}
 
@@ -219,4 +303,5 @@ func CastReport (jsondata []byte, update_process string, next_process string) er
 	}
 
 	return err
+  */
 }

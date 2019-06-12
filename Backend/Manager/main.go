@@ -23,10 +23,10 @@ import (
 //const managerUserMap = "http://localhost:9000/managerUserMap"
 //const managerServer = "http://localhost:8081/Manager"
 
-const backupServer = "http://192.168.43.52:9000/reportBackup"
-const updateServer = "http://192.168.43.52:9000/reportUpdate"
-const managerPet = "http://192.168.43.52:9000/managerPet"
-const managerUserMap = "http://192.168.43.52:9000/managerUserMap"
+const backupServer = "http://localhost:9000/reportBackup"
+const updateServer = "http://localhost:9000/reportUpdate"
+const managerPet = "http://localhost:9000/managerPet"
+const managerUserMap = "http://localhost:9000/managerUserMap"
 const managerServer = "http://localhost:8081/Manager"
 
 //MUTEX & DATABASE
@@ -93,6 +93,11 @@ func reportToManager(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		//Respond to user
+		nonce := makeNonce()
+		userResponse := aes_gcm.Seal(nonce,nonce,[]byte("OK"),nil)
+		w.Write(userResponse)
+
 		//VERIFY USER BACKUP
 		res,err := SendToServer(buf.Bytes(),managerPet)
 		if err != nil {
@@ -126,7 +131,7 @@ func reportToManager(w http.ResponseWriter, r *http.Request) {
 		//SEND USER TO GET NEAR POINTS
 		data,_ := json.Marshal(jsondata)
 
-		nonce := makeNonce()
+		nonce = makeNonce()
 		data = aes_gcm.Seal(nonce,nonce,data,nil)
 
 		res,err = SendToServer(data,managerUserMap)

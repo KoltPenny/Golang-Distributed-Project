@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"regexp"
 	"encoding/json"
-	"strings"
-	"sync"
-	"time"
+	//"strings"
+	//"sync"
+	//"time"
 	"database/sql"
-	"io/ioutil"
+	//"io/ioutil"
 	_ "github.com/mattn/go-sqlite3"
 )
 //Remote server URLs
@@ -18,12 +18,12 @@ import (
 //const updateServer = "http://localhost:9000/reportUpdate"
 //const managerServer = "http://localhost:8081/postToManager"
 
-const backupServer = "http://192.168.43.52:9000/reportBackup"  
-const updateServer = "http://192.168.43.52:9000/reportUpdate"  
+//const backupServer = "http://localhost:9000/reportBackup"  
+const updateServer = "http://localhost:9000/reportUpdate"  
 const managerServer = "http://localhost:8081/postToManager"//MUTEX & DATABASE
 
 //var database *sql.DB
-var mutex sync.Mutex
+//var mutex sync.Mutex
 
 func createTable (t tableDesc) {
 	database,_ := sql.Open ("sqlite3","./reportes.db")
@@ -91,7 +91,7 @@ func receiveReport(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Statement:",err)
 			//mutex.Unlock()
 			w.Write([]byte("RP-QU"))
-			//return
+			return
 		}
 		err = nil
 		//Execute SQL statement
@@ -100,7 +100,7 @@ func receiveReport(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			fmt.Println("Statement:",err)
 			//DESCOMENTAR AL TERMINAR
-			//mutex.Unlock()
+			//mutex.Unlock() //ESTO NO
 			//w.Write([]byte("RP-ST"))
 			//return
 		}
@@ -116,8 +116,12 @@ func receiveReport(w http.ResponseWriter, r *http.Request) {
 		err = CastReport(data,updateServer,managerServer)
 
 		if err != nil {
-			fmt.Println("CAST:",err)
-			w.Write([]byte("RP-NS"))
+			fmt.Println("<CAST>\n",err,"\n<---->")
+			switch err.Error() {
+			case "TIMEOUT":	w.Write([]byte("RP-TO"))
+			case "DECRYPT":	w.Write([]byte("RP-CR"))
+			}
+			
 			return
 		}
 		w.Write([]byte("RP-OK"))
@@ -126,6 +130,7 @@ func receiveReport(w http.ResponseWriter, r *http.Request) {
 }
 
 // periodicBackup
+/*
 func periodicBackup(minutes int, tableName string) {
 
 	database,_ := sql.Open ("sqlite3","./reportes.db")
@@ -174,6 +179,7 @@ func periodicBackup(minutes int, tableName string) {
 
 	}	
 }
+*/
 
 func main () {
 	//Init AES Key and GCM

@@ -55,7 +55,7 @@ insert into usuario values (uuid,lng,lat,cdate,r_type);
 insert into user_point values (
 uuid,
 POINT(lng,lat),
-ifnull(is_near(POINT(lng,lat)),0)
+ifnull(is_near(uuid),0)
 );
 
 end #
